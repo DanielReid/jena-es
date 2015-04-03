@@ -48,6 +48,7 @@ public class GraphStoreController {
 			@RequestHeader(value=ESHeaders.ACCEPT_VERSION, required=false) String version,
 			HttpServletResponse response) {
 		final DatasetGraphEventSourcing dataset = getDataset(datasetId);
+	  	logger.debug("created dataset hashCode: " + dataset.hashCode() + " isInTransaction: " + dataset.isInTransaction());
 		TargetGraph target = determineTargetGraph(params);
 	    logger.debug("GraphStoreController get begin dataset transaction");
 		dataset.begin(ReadWrite.READ);
