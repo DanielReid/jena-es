@@ -6,6 +6,10 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import org.drugis.rdf.versioning.store.DatasetGraphEventSourcing;
 import org.drugis.rdf.versioning.store.EventSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,10 @@ import com.hp.hpl.jena.sparql.graph.GraphFactory;
 @Controller
 @RequestMapping("/datasets/{datasetId}/data")
 public class GraphStoreController {
+
+
+	Logger logger = LoggerFactory.getLogger(GraphStoreController.class);
+
 	@Autowired EventSource d_eventSource;
 
 	@RequestMapping(method={RequestMethod.GET, RequestMethod.HEAD})
@@ -41,6 +49,7 @@ public class GraphStoreController {
 			HttpServletResponse response) {
 		final DatasetGraphEventSourcing dataset = getDataset(datasetId);
 		TargetGraph target = determineTargetGraph(params);
+	    logger.debug("GraphStoreController get begin dataset transaction");
 		dataset.begin(ReadWrite.READ);
 		Graph rval;
 		if (version == null) {
@@ -55,6 +64,7 @@ public class GraphStoreController {
 			rval = target.get(view);
 		}
 		dataset.end();
+	  logger.debug("GraphStoreController get end dataset transaction");
 		response.setHeader(ESHeaders.VERSION, version);
 		response.setHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT + ", " + ESHeaders.ACCEPT_VERSION);
 		return rval;
