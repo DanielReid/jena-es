@@ -36,186 +36,199 @@ import com.hp.hpl.jena.sparql.graph.GraphFactory;
 public class GraphStoreController {
 
 
-	Logger logger = LoggerFactory.getLogger(GraphStoreController.class);
+  Logger logger = LoggerFactory.getLogger(GraphStoreController.class);
 
-	@Autowired EventSource d_eventSource;
+  @Autowired
+  EventSource d_eventSource;
 
-	@RequestMapping(method={RequestMethod.GET, RequestMethod.HEAD})
-	@ResponseBody
-	public Graph get(
-			@PathVariable String datasetId,
-			@RequestParam Map<String,String> params,
-			@RequestHeader(value=ESHeaders.ACCEPT_VERSION, required=false) String version,
-			HttpServletResponse response) {
-		final DatasetGraphEventSourcing dataset = getDataset(datasetId);
-	  	logger.debug("created dataset hashCode: " + dataset.hashCode() + " isInTransaction: " + dataset.isInTransaction());
-		TargetGraph target = determineTargetGraph(params);
-	    logger.debug("GraphStoreController get begin dataset transaction");
-		dataset.begin(ReadWrite.READ);
-		Graph rval;
-		if (version == null) {
-			rval = target.get(dataset);
-			version = dataset.getLatestEvent().getURI();
-		} else {
-			DatasetGraph view = dataset.getView(NodeFactory.createURI(version));
-			if (view == null) {
-				dataset.end();
-				throw new VersionNotFoundException();
-			}
-			rval = target.get(view);
-		}
-		dataset.end();
-	  logger.debug("GraphStoreController get end dataset transaction");
-		response.setHeader(ESHeaders.VERSION, version);
-		response.setHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT + ", " + ESHeaders.ACCEPT_VERSION);
-		return rval;
-	}
-	
-	@RequestMapping(method=RequestMethod.PUT)
-	public void put(
-			@PathVariable String datasetId,
-			@RequestParam Map<String,String> params,
-			@RequestHeader(value="X-Accept-EventSource-Version", required=false) String version,
-			final @RequestBody Graph graph,
-			HttpServletRequest request,
-			HttpServletResponse response) {
-		final DatasetGraphEventSourcing dataset = getDataset(datasetId);
-		final TargetGraph target = determineTargetGraph(params);
-		Runnable action = new Runnable() {
-			@Override
-			public void run() {
-				target.set(dataset, graph);
-			}
-		};
-		String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
-		response.setHeader("X-EventSource-Version", newVersion);
-	}
-	
-	@RequestMapping(method=RequestMethod.POST)
-	public void post(
-			@PathVariable String datasetId,
-			@RequestParam Map<String,String> params,
-			@RequestHeader(value="X-Accept-EventSource-Version", required=false) String version,
-			final @RequestBody Graph graph,
-			HttpServletRequest request,
-			HttpServletResponse response) {
-		final DatasetGraphEventSourcing dataset = getDataset(datasetId);
-		final TargetGraph target = determineTargetGraph(params);
-		Runnable action = new Runnable() {
-			@Override
-			public void run() {
-				GraphUtil.addInto(target.get(dataset), graph);
-			}
-		};
-		String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
-		response.setHeader("X-EventSource-Version", newVersion);
-	}
+  @RequestMapping(method = {RequestMethod.GET, RequestMethod.HEAD})
+  @ResponseBody
+  public Graph get(
+          @PathVariable String datasetId,
+          @RequestParam Map<String, String> params,
+          @RequestHeader(value = ESHeaders.ACCEPT_VERSION, required = false) String version,
+          HttpServletResponse response) throws GetGraphException {
+    logger.debug("at the start of graph get");
 
-	@RequestMapping(method=RequestMethod.DELETE)
-	public void delete(
-			@PathVariable String datasetId,
-			@RequestParam Map<String,String> params,
-			@RequestHeader(value="X-Accept-EventSource-Version", required=false) String version,
-			HttpServletRequest request,
-			HttpServletResponse response) {
-		final DatasetGraphEventSourcing dataset = getDataset(datasetId);
-		final TargetGraph target = determineTargetGraph(params);
-		Runnable action = new Runnable() {
-			@Override
-			public void run() {
-				target.remove(dataset);
-			}
-		};
-		String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
-		response.setHeader("X-EventSource-Version", newVersion);
-	}
-	
-	private DatasetGraphEventSourcing getDataset(String datasetId) {
-		return Util.getDataset(d_eventSource, datasetId);
-	}
+    final DatasetGraphEventSourcing dataset = getDataset(datasetId);
+    TargetGraph target = determineTargetGraph(params);
+    Graph rval;
+    try {
+      logger.debug("created dataset hashCode: " + dataset.hashCode() + " isInTransaction: " + dataset.isInTransaction());
+      logger.debug("GraphStoreController get begin dataset transaction");
+      dataset.begin(ReadWrite.READ);
+      if (version == null) {
+        rval = target.get(dataset);
+        version = dataset.getLatestEvent().getURI();
+      } else {
+        DatasetGraph view = dataset.getView(NodeFactory.createURI(version));
+        if (view == null) {
+          dataset.end();
+          throw new VersionNotFoundException();
+        }
+        rval = target.get(view);
+      }
+    } catch (Exception e) {
+      logger.error(e.getMessage());
+      throw new GetGraphException();
+    } finally {
+      logger.debug("GraphStoreController get end dataset transaction");
+      if (dataset != null) {
+        dataset.end();
+      }
+    }
 
-	static abstract class TargetGraph {
-		public String getUri() {
-			return null;
-		}
 
-		/**
-		 * Remove the target graph.
-		 */
-		abstract public void remove(DatasetGraphEventSourcing dataset);
+    response.setHeader(ESHeaders.VERSION, version);
+    response.setHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT + ", " + ESHeaders.ACCEPT_VERSION);
+    return rval;
+  }
 
-		/**
-		 * Get the contents of the target graph.
-		 */
-		abstract public Graph get(DatasetGraph dsg);
+  @RequestMapping(method = RequestMethod.PUT)
+  public void put(
+          @PathVariable String datasetId,
+          @RequestParam Map<String, String> params,
+          @RequestHeader(value = "X-Accept-EventSource-Version", required = false) String version,
+          final @RequestBody Graph graph,
+          HttpServletRequest request,
+          HttpServletResponse response) {
+    final DatasetGraphEventSourcing dataset = getDataset(datasetId);
+    final TargetGraph target = determineTargetGraph(params);
+    Runnable action = new Runnable() {
+      @Override
+      public void run() {
+        target.set(dataset, graph);
+      }
+    };
+    String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
+    response.setHeader("X-EventSource-Version", newVersion);
+  }
 
-		/**
-		 * Set the contents of the target graph.
-		 */
-		abstract public void set(DatasetGraphEventSourcing dataset, Graph graph);
+  @RequestMapping(method = RequestMethod.POST)
+  public void post(
+          @PathVariable String datasetId,
+          @RequestParam Map<String, String> params,
+          @RequestHeader(value = "X-Accept-EventSource-Version", required = false) String version,
+          final @RequestBody Graph graph,
+          HttpServletRequest request,
+          HttpServletResponse response) {
+    final DatasetGraphEventSourcing dataset = getDataset(datasetId);
+    final TargetGraph target = determineTargetGraph(params);
+    Runnable action = new Runnable() {
+      @Override
+      public void run() {
+        GraphUtil.addInto(target.get(dataset), graph);
+      }
+    };
+    String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
+    response.setHeader("X-EventSource-Version", newVersion);
+  }
 
-		public boolean isDefault() {
-			return false;
-		}
-	}
-	
-	static class DefaultGraph extends TargetGraph {
-		@Override
-		public boolean isDefault() {
-			return true;
-		}
+  @RequestMapping(method = RequestMethod.DELETE)
+  public void delete(
+          @PathVariable String datasetId,
+          @RequestParam Map<String, String> params,
+          @RequestHeader(value = "X-Accept-EventSource-Version", required = false) String version,
+          HttpServletRequest request,
+          HttpServletResponse response) {
+    final DatasetGraphEventSourcing dataset = getDataset(datasetId);
+    final TargetGraph target = determineTargetGraph(params);
+    Runnable action = new Runnable() {
+      @Override
+      public void run() {
+        target.remove(dataset);
+      }
+    };
+    String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
+    response.setHeader("X-EventSource-Version", newVersion);
+  }
 
-		@Override
-		public Graph get(DatasetGraph dsg) {
-			return dsg.getDefaultGraph();
-		}
+  private DatasetGraphEventSourcing getDataset(String datasetId) {
+    return Util.getDataset(d_eventSource, datasetId);
+  }
 
-		@Override
-		public void set(DatasetGraphEventSourcing dataset, Graph graph) {
-			dataset.setDefaultGraph(graph);
-		}
+  static abstract class TargetGraph {
+    public String getUri() {
+      return null;
+    }
 
-		@Override
-		public void remove(DatasetGraphEventSourcing dataset) {
-			dataset.setDefaultGraph(GraphFactory.createGraphMem());
-		}
-	}
-	
-	static class NamedGraph extends TargetGraph {
-		private Node d_graphNode;
+    /**
+     * Remove the target graph.
+     */
+    abstract public void remove(DatasetGraphEventSourcing dataset);
 
-		public NamedGraph(String uri) {
-			d_graphNode = NodeFactory.createURI(uri);
-		}
-		
-		@Override
-		public String getUri() {
-			return d_graphNode.getURI();
-		}
+    /**
+     * Get the contents of the target graph.
+     */
+    abstract public Graph get(DatasetGraph dsg);
 
-		@Override
-		public Graph get(DatasetGraph dsg) {
-			return dsg.getGraph(d_graphNode);
-		}
+    /**
+     * Set the contents of the target graph.
+     */
+    abstract public void set(DatasetGraphEventSourcing dataset, Graph graph);
 
-		@Override
-		public void set(DatasetGraphEventSourcing dataset, Graph graph) {
-			dataset.addGraph(d_graphNode, graph);
-		}
+    public boolean isDefault() {
+      return false;
+    }
+  }
 
-		@Override
-		public void remove(DatasetGraphEventSourcing dataset) {
-			dataset.removeGraph(d_graphNode);
-		}
-	}
-	
-	private static TargetGraph determineTargetGraph(Map<String, String> params) {
-		if (params.keySet().equals(Collections.singleton("default")) && params.get("default").equals("")) {
-			return new DefaultGraph();
-		} else if (params.keySet().equals(Collections.singleton("graph"))) {
-			return new NamedGraph(params.get("graph"));
-		} else {
-			throw new InvalidGraphSpecificationException();
-		}
-	}
+  static class DefaultGraph extends TargetGraph {
+    @Override
+    public boolean isDefault() {
+      return true;
+    }
+
+    @Override
+    public Graph get(DatasetGraph dsg) {
+      return dsg.getDefaultGraph();
+    }
+
+    @Override
+    public void set(DatasetGraphEventSourcing dataset, Graph graph) {
+      dataset.setDefaultGraph(graph);
+    }
+
+    @Override
+    public void remove(DatasetGraphEventSourcing dataset) {
+      dataset.setDefaultGraph(GraphFactory.createGraphMem());
+    }
+  }
+
+  static class NamedGraph extends TargetGraph {
+    private Node d_graphNode;
+
+    public NamedGraph(String uri) {
+      d_graphNode = NodeFactory.createURI(uri);
+    }
+
+    @Override
+    public String getUri() {
+      return d_graphNode.getURI();
+    }
+
+    @Override
+    public Graph get(DatasetGraph dsg) {
+      return dsg.getGraph(d_graphNode);
+    }
+
+    @Override
+    public void set(DatasetGraphEventSourcing dataset, Graph graph) {
+      dataset.addGraph(d_graphNode, graph);
+    }
+
+    @Override
+    public void remove(DatasetGraphEventSourcing dataset) {
+      dataset.removeGraph(d_graphNode);
+    }
+  }
+
+  private static TargetGraph determineTargetGraph(Map<String, String> params) {
+    if (params.keySet().equals(Collections.singleton("default")) && params.get("default").equals("")) {
+      return new DefaultGraph();
+    } else if (params.keySet().equals(Collections.singleton("graph"))) {
+      return new NamedGraph(params.get("graph"));
+    } else {
+      throw new InvalidGraphSpecificationException();
+    }
+  }
 }
