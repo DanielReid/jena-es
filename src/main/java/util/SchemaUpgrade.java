@@ -35,10 +35,10 @@ import com.hp.hpl.jena.vocabulary.RDF;
 public class SchemaUpgrade {
 	// To keep cached pre- and post-upgrade content.
 	private static class Pair<T> {
-		public T first;
-		public T second;
+		T first;
+		T second;
 
-		public Pair(T first, T second) {
+		Pair(T first, T second) {
 			this.first = first;
 			this.second = second;
 		}
@@ -74,6 +74,7 @@ public class SchemaUpgrade {
 		String query = new String(Files.readAllBytes(Paths.get(args[0])));
 		
 		new SchemaUpgrade(storage, uriPrefix, query).run();
+		storage.close();
 	}
 	
 	
@@ -100,7 +101,7 @@ public class SchemaUpgrade {
 			System.out.println(rev + " -> " + previous + "; " + d_frontier.size());
 			
 			// Upgrade the revision and add it to the frontier
-			Pair<Graph> frontierItem = null;
+			Pair<Graph> frontierItem;
 			if (!previous.equals(Node.ANY)) {
 				frontierItem = upgradeRevision(rev, d_frontier.get(previous).first, d_frontier.get(previous).second);
 			} else {
@@ -115,8 +116,6 @@ public class SchemaUpgrade {
 				d_frontier.remove(rem);
 			}
 		}
-		
-		d_storage.close();
 	}
 
 	// Upgrade a revision, given cached copies of the pre- and post-upgrade content of the previous revision
@@ -158,7 +157,7 @@ public class SchemaUpgrade {
 		// Debug output
 		RDFDataMgr.write(System.out, newGraph, Lang.TURTLE);
 		
-		return new Pair<Graph>(oldGraph, newGraph);
+		return new Pair<>(oldGraph, newGraph);
 	}
 	
 	// Upgrade a graph
@@ -171,7 +170,7 @@ public class SchemaUpgrade {
 	}
 
 	private Pair<Node> backlogNext() {
-		Node previous = null;
+		Node previous;
 		
 		// First try to exhaust any revisions that have a previous, as these would be consuming memory
 		if (!d_frontier.isEmpty()) {
@@ -185,20 +184,16 @@ public class SchemaUpgrade {
 		if (list.isEmpty()) {
 			d_backlog.remove(previous);
 		}
-		return new Pair<Node>(previous, next);
+		return new Pair<>(previous, next);
 	}
 
 	private void addToBacklog(Node previous, Node revision) {
 		if (previous == null) {
 			previous = Node.ANY;
 		}
-		
-		List<Node> list = d_backlog.get(previous);
-		if (list == null) {
-			list = new ArrayList<>();
-			d_backlog.put(previous, list);
-		}
-		
+
+		List<Node> list = d_backlog.computeIfAbsent(previous, k -> new ArrayList<>());
+
 		list.add(revision);
 	}
 }
