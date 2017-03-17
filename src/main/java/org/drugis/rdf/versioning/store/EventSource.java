@@ -37,29 +37,29 @@ import com.hp.hpl.jena.vocabulary.RDF;
 
 @SuppressWarnings("deprecation")
 public class EventSource {
-	public static final String ES="http://drugis.org/eventSourcing/es#",
+	private static final String ES="http://drugis.org/eventSourcing/es#",
 			DCTERMS="http://purl.org/dc/terms/";
-	public static final Node esClassDataset = NodeFactory.createURI(ES + "Dataset"),
-			esClassDatasetVersion = NodeFactory.createURI(ES + "DatasetVersion"),
-			esClassRevision = NodeFactory.createURI(ES + "Revision"),
-			esClassMergeTypeCopyTheirs = NodeFactory.createURI(ES + "MergeTypeCopyTheirs"),
-			esClassNamedGraphRevision = NodeFactory.createURI(ES + "NamedGraphRevision"),
-			esClassDefaultGraphRevision = NodeFactory.createURI(ES + "DefaultGraphRevision"),
-			esPropertyHead = NodeFactory.createURI(ES + "head"),
-			esPropertyDataset = NodeFactory.createURI(ES + "dataset"),
-			esPropertyDefaultGraphRevision = NodeFactory.createURI(ES + "default_graph_revision"),
-			esPropertyGraphRevision = NodeFactory.createURI(ES + "graph_revision"),
-			esPropertyGraph = NodeFactory.createURI(ES + "graph"),
-			esPropertyRevision = NodeFactory.createURI(ES + "revision"),
-			esPropertyPrevious = NodeFactory.createURI(ES + "previous"),
-			esPropertyAssertions = NodeFactory.createURI(ES + "assertions"),
-			esPropertyRetractions = NodeFactory.createURI(ES + "retractions"),
-			esPropertyMergedRevision = NodeFactory.createURI(ES + "merged_revision"),
-			esPropertyMergeType = NodeFactory.createURI(ES + "merge_type"),
-			dctermsDate = NodeFactory.createURI(DCTERMS + "date"),
-			dctermsCreator = NodeFactory.createURI(DCTERMS + "creator"),
-			dctermsTitle = NodeFactory.createURI(DCTERMS + "title"),
-			dctermsDescription = NodeFactory.createURI(DCTERMS + "description");
+	public static final Node esClassDataset = NodeFactory.createURI(ES + "Dataset");
+	public static final Node esClassDatasetVersion = NodeFactory.createURI(ES + "DatasetVersion");
+	public static final Node esClassRevision = NodeFactory.createURI(ES + "Revision");
+	public static final Node esClassMergeTypeCopyTheirs = NodeFactory.createURI(ES + "MergeTypeCopyTheirs");
+	public static final Node esClassNamedGraphRevision = NodeFactory.createURI(ES + "NamedGraphRevision");
+	public static final Node esClassDefaultGraphRevision = NodeFactory.createURI(ES + "DefaultGraphRevision");
+	public static final Node esPropertyHead = NodeFactory.createURI(ES + "head");
+	public static final Node esPropertyDataset = NodeFactory.createURI(ES + "dataset");
+	public static final Node esPropertyDefaultGraphRevision = NodeFactory.createURI(ES + "default_graph_revision");
+	public static final Node esPropertyGraphRevision = NodeFactory.createURI(ES + "graph_revision");
+	public static final Node esPropertyGraph = NodeFactory.createURI(ES + "graph");
+	public static final Node esPropertyRevision = NodeFactory.createURI(ES + "revision");
+	public static final Node esPropertyPrevious = NodeFactory.createURI(ES + "previous");
+	public static final Node esPropertyAssertions = NodeFactory.createURI(ES + "assertions");
+	public static final Node esPropertyRetractions = NodeFactory.createURI(ES + "retractions");
+	public static final Node esPropertyMergedRevision = NodeFactory.createURI(ES + "merged_revision");
+	public static final Node esPropertyMergeType = NodeFactory.createURI(ES + "merge_type");
+	public static final Node dctermsDate = NodeFactory.createURI(DCTERMS + "date");
+	public static final Node dctermsCreator = NodeFactory.createURI(DCTERMS + "creator");
+	public static final Node dctermsTitle = NodeFactory.createURI(DCTERMS + "title");
+	public static final Node dctermsDescription = NodeFactory.createURI(DCTERMS + "description");
 
 	public static class EventNotFoundException extends RuntimeException {
 		private static final long serialVersionUID = -1603163798182523814L;
@@ -94,7 +94,7 @@ public class EventSource {
 		return d_datastore;
 	}
 	
-	public String getUriPrefix() {
+	private String getUriPrefix() {
 		return d_uriPrefix;
 	}
 
@@ -110,7 +110,7 @@ public class EventSource {
 	}
 	
 	private static Map<Node, Node> getGraphRevisions(DatasetGraph eventSource, Node version) {
-		Map<Node, Node> map = new HashMap<Node, Node>();
+		Map<Node, Node> map = new HashMap<>();
 		
 		// Named graphs
 		for (Iterator<Triple> triples = eventSource.getDefaultGraph().find(version, esPropertyGraphRevision, Node.ANY); triples.hasNext(); ) {
@@ -201,12 +201,11 @@ public class EventSource {
 	}
 
     // http://stackoverflow.com/questions/3914404
-	private static String now() {
+	private static String nowAsISO() {
 	    TimeZone tz = TimeZone.getTimeZone("UTC");
 	    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	    df.setTimeZone(tz);
-	    String nowAsISO = df.format(new Date());
-	    return nowAsISO;
+		return df.format(new Date());
 	}
 	
 	/**
@@ -228,8 +227,7 @@ public class EventSource {
 
 	/**
 	 * Write an event to the log, assuming it is consistent with the current state.
-	 * @param d_datastore The DatasetGraph containing the event log.
-	 * @param log The URI of the event log.
+	 * @param dataset The DatasetGraph containing the event log.
 	 * @param event The event (changeset).
 	 * @param meta A graph containing meta-data. It must contain a single blank node of class es:DatasetVersion, the properties of which will be added to the event meta-data.
 	 * @return The ID of the event.
@@ -240,7 +238,7 @@ public class EventSource {
 		
 		addTriple(d_datastore, version, RDF.Nodes.type, esClassDatasetVersion);
 		addTriple(d_datastore, version, esPropertyDataset, dataset);
-		addTriple(d_datastore, version, dctermsDate, NodeFactory.createLiteral(now(), XSDDatatype.XSDdateTime));
+		addTriple(d_datastore, version, dctermsDate, NodeFactory.createLiteral(nowAsISO(), XSDDatatype.XSDdateTime));
 		
 		addMetaData(d_datastore, meta, version, esClassDatasetVersion);
 
@@ -273,7 +271,7 @@ public class EventSource {
 
 	private void addRevisionMetaData(final Node graph, final Graph meta,
 			Node newRevision) {
-		Node graphRevision = null;
+		Node graphRevision;
 		if (graph.equals(Quad.defaultGraphNodeGenerated)) {
 			graphRevision = Util.getUniqueOptionalSubject(meta.find(Node.ANY, RDF.Nodes.type, EventSource.esClassDefaultGraphRevision));
 		} else {
@@ -402,7 +400,7 @@ public class EventSource {
 	}
 
 	public Graph skolemize(Graph graph) {
-		Set<Node> blanks = new HashSet<Node>();
+		Set<Node> blanks = new HashSet<>();
 		
 		for (Iterator<Node> nodes = GraphUtils.allNodes(graph); nodes.hasNext(); ) {
 			Node node = nodes.next();
@@ -447,7 +445,7 @@ public class EventSource {
 		addTriple(d_datastore, dataset, esPropertyHead, version);
 		addTriple(d_datastore, version, RDF.Nodes.type, esClassDatasetVersion);
 		addTriple(d_datastore, version, esPropertyDataset, dataset);
-		Node date = NodeFactory.createLiteral(now(), XSDDatatype.XSDdateTime);
+		Node date = NodeFactory.createLiteral(nowAsISO(), XSDDatatype.XSDdateTime);
 		addTriple(d_datastore, version, dctermsDate, date);
 		addTriple(d_datastore, dataset, dctermsDate, date);
 
