@@ -9,12 +9,12 @@ import arq.cmd.CmdException;
 import arq.cmdline.ArgDecl;
 import arq.cmdline.CmdARQ;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.Transactional;
-import com.hp.hpl.jena.sparql.core.assembler.AssemblerUtils;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.core.assembler.AssemblerUtils;
 
 public class InsertData extends CmdARQ {
     ArgDecl assemblerDescArg = new ArgDecl(ArgDecl.HasValue, "desc", "dataset") ;

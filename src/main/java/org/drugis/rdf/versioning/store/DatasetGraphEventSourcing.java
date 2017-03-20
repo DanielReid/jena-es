@@ -5,19 +5,19 @@ import java.util.Observer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.shared.Lock;
-import com.hp.hpl.jena.sparql.JenaTransactionException;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DatasetGraphTrackActive;
-import com.hp.hpl.jena.sparql.core.Transactional;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.sparql.util.Context;
-import com.hp.hpl.jena.update.GraphStore;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.shared.Lock;
+import org.apache.jena.sparql.JenaTransactionException;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphTrackActive;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.Context;
+import org.apache.jena.update.GraphStore;
 
 /**
  * Event sourcing dataset that supports transactions (single writer, multiple reader).

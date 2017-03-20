@@ -18,7 +18,7 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import com.hp.hpl.jena.query.ResultSet;
+import org.apache.jena.query.ResultSet;
 
 public class JenaResultSetMessageConverter extends AbstractHttpMessageConverter<ResultSet> {
 	Log d_log = LogFactory.getLog(getClass());

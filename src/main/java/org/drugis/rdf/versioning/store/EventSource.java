@@ -14,26 +14,26 @@ import org.drugis.rdf.versioning.server.Util;
 
 import com.github.rholder.fauxflake.IdGenerators;
 import com.github.rholder.fauxflake.api.IdGenerator;
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphExtract;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleBoundary;
-import com.hp.hpl.jena.graph.compose.Delta;
-import com.hp.hpl.jena.graph.compose.Difference;
-import com.hp.hpl.jena.graph.compose.Union;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DatasetGraphFactory;
-import com.hp.hpl.jena.sparql.core.Quad;
-import com.hp.hpl.jena.sparql.core.Transactional;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.sparql.util.graph.GraphUtils;
-import com.hp.hpl.jena.util.iterator.Filter;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphExtract;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.TripleBoundary;
+import org.apache.jena.graph.compose.Delta;
+import org.apache.jena.graph.compose.Difference;
+import org.apache.jena.graph.compose.Union;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.graph.GraphUtils;
+import org.apache.jena.util.iterator.Filter;
+import org.apache.jena.vocabulary.RDF;
 
 @SuppressWarnings("deprecation")
 public class EventSource {

@@ -3,7 +3,7 @@ package org.drugis.rdf.versioning.store;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.hp.hpl.jena.graph.Node;
+import org.apache.jena.graph.Node;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class DatasetNotFoundException extends RuntimeException {

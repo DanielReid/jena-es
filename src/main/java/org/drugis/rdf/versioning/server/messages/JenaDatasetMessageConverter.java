@@ -19,8 +19,8 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 
 public class JenaDatasetMessageConverter extends AbstractHttpMessageConverter<DatasetGraph> {
 	private static MediaType s_trig = MediaType.parseMediaType("text/trig");

@@ -12,22 +12,22 @@ import org.drugis.rdf.versioning.store.DatasetGraphEventSourcing;
 import org.drugis.rdf.versioning.store.DatasetNotFoundException;
 import org.drugis.rdf.versioning.store.EventSource;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.query.Syntax;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.sparql.core.Transactional;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.Syntax;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.vocabulary.RDF;
 
 public class Util {
 	/**

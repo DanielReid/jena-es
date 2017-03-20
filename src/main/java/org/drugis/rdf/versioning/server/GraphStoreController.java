@@ -21,15 +21,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.vocabulary.RDF;
 
 @Controller
 @RequestMapping("/datasets/{datasetId}/data")

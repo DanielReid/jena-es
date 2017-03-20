@@ -1,8 +1,8 @@
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.riot.RDFDataMgr;
 import org.drugis.rdf.versioning.store.EventSource;
 import org.junit.Before;
@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static com.hp.hpl.jena.graph.NodeFactory.createLiteral;
-import static com.hp.hpl.jena.graph.NodeFactory.createURI;
+import static org.apache.jena.graph.NodeFactory.createLiteral;
+import static org.apache.jena.graph.NodeFactory.createURI;
 import static org.junit.Assert.*;
 
 /**

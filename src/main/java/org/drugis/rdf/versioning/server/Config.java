@@ -19,8 +19,8 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.tdb.TDBFactory;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.tdb.TDBFactory;
 
 @Configuration
 public class Config extends WebMvcAutoConfigurationAdapter {

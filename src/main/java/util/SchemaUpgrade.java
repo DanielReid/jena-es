@@ -14,18 +14,18 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.drugis.rdf.versioning.server.Util;
 import org.drugis.rdf.versioning.store.EventSource;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.compose.Delta;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.tdb.TDBFactory;
-import com.hp.hpl.jena.update.UpdateAction;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.compose.Delta;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.tdb.TDBFactory;
+import org.apache.jena.update.UpdateAction;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
 
 /**
  * Schema upgrade tool for jena-es.
@@ -72,7 +72,7 @@ public class SchemaUpgrade {
 		}
 		
 		String query = new String(Files.readAllBytes(Paths.get(args[0])));
-		
+
 		new SchemaUpgrade(storage, uriPrefix, query).run();
 		storage.close();
 	}
