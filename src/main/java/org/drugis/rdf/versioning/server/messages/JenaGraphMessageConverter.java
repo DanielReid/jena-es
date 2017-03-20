@@ -25,7 +25,7 @@ import org.apache.jena.sparql.graph.GraphFactory;
 
 public class JenaGraphMessageConverter extends AbstractHttpMessageConverter<Graph> {
 	private static MediaType s_turtle = MediaType.parseMediaType("text/turtle");
-	private static List<MediaType> s_supported = new ArrayList<MediaType>();
+	private static List<MediaType> s_supported = new ArrayList<>();
 	static {
 		// Add all supported languages
 		for (Lang lang : RDFLanguages.getRegisteredLanguages()) {

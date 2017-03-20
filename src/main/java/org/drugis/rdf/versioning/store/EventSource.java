@@ -1,27 +1,9 @@
 package org.drugis.rdf.versioning.store;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.UUID;
-
-import org.drugis.rdf.versioning.server.Util;
 
 import com.github.rholder.fauxflake.IdGenerators;
 import com.github.rholder.fauxflake.api.IdGenerator;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphExtract;
-import org.apache.jena.graph.GraphUtil;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.TripleBoundary;
+import org.apache.jena.graph.*;
 import org.apache.jena.graph.compose.Delta;
 import org.apache.jena.graph.compose.Difference;
 import org.apache.jena.graph.compose.Union;
@@ -32,10 +14,13 @@ import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.graph.GraphUtils;
-import org.apache.jena.util.iterator.Filter;
 import org.apache.jena.vocabulary.RDF;
+import org.drugis.rdf.versioning.server.Util;
 
-@SuppressWarnings("deprecation")
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 public class EventSource {
 	private static final String ES="http://drugis.org/eventSourcing/es#",
 			DCTERMS="http://purl.org/dc/terms/";
@@ -79,8 +64,8 @@ public class EventSource {
 	private String SKOLEM;
 	private String d_uriPrefix;
 	
-	public EventSource(DatasetGraph datastore, String uriPrefix) {
-		d_datastore = datastore;
+	public EventSource(DatasetGraph dataStore, String uriPrefix) {
+		d_datastore = dataStore;
 		d_uriPrefix = uriPrefix;
 		
 		VERSION = uriPrefix + "/versions/";
@@ -134,7 +119,7 @@ public class EventSource {
 		if (!versionExists(dataset, version)) {
 			return null;
 		}
-		DatasetGraph ds = DatasetGraphFactory.createMem();
+		DatasetGraph ds = DatasetGraphFactory.createGeneral();
 		for (Map.Entry<Node, Node> entry : getGraphRevisions(d_datastore, version).entrySet()) {
 			Node graphName = entry.getKey();
 			Node revision = entry.getValue();
@@ -197,7 +182,9 @@ public class EventSource {
 	public static Graph applyRevision(DatasetGraph eventSource, Graph base, Node revision) {
 		Graph additions = matchingGraph(eventSource, eventSource.getDefaultGraph().find(revision, esPropertyAssertions, Node.ANY));
 		Graph retractions = matchingGraph(eventSource, eventSource.getDefaultGraph().find(revision, esPropertyRetractions, Node.ANY));
-		return new Union(new Difference(base, retractions), additions);
+		Graph returnValue = GraphFactory.createGraphMem(); // needed because Union is a dynamic window and we want a static graph
+		GraphUtil.addInto(returnValue, new Union(new Difference(base, retractions), additions));
+		return returnValue;
 	}
 
     // http://stackoverflow.com/questions/3914404
@@ -275,10 +262,9 @@ public class EventSource {
 		if (graph.equals(Quad.defaultGraphNodeGenerated)) {
 			graphRevision = Util.getUniqueOptionalSubject(meta.find(Node.ANY, RDF.Nodes.type, EventSource.esClassDefaultGraphRevision));
 		} else {
-			graphRevision = Util.getUniqueOptionalSubject(meta.find(Node.ANY, RDF.Nodes.type, EventSource.esClassNamedGraphRevision).filterKeep(new Filter<Triple>() {
-				@Override public boolean accept(Triple o) {
-					return meta.find(o.getSubject(), EventSource.esPropertyGraph, graph).hasNext();
-				}}));
+			graphRevision = Util.getUniqueOptionalSubject(meta.find(Node.ANY, RDF.Nodes.type, EventSource.esClassNamedGraphRevision).filterKeep(triple ->
+				meta.find(triple.getSubject(), EventSource.esPropertyGraph, graph).hasNext()
+			));
 		}
 		if (graphRevision != null) {
 			Node revisionMetaRoot = Util.getUniqueObject(meta.find(graphRevision, esPropertyRevision, Node.ANY));
@@ -342,7 +328,7 @@ public class EventSource {
 	 * @param revision The revision of the graph.
 	 */
 	private static void addGraphRevision(DatasetGraph eventSource, Node version, Node graph, Node revision) {
-		Node graphRevision = NodeFactory.createAnon();
+		Node graphRevision = NodeFactory.createBlankNode();
 		if (graph.equals(Quad.defaultGraphNodeGenerated)) {
 			addTriple(eventSource, version, esPropertyDefaultGraphRevision, graphRevision);
 		} else {
@@ -423,7 +409,7 @@ public class EventSource {
 	}
 
 	public Node createDatasetIfNotExists(Node dataset) {
-		Transactional trans = (Transactional) d_datastore;
+		Transactional trans = d_datastore;
 
 		trans.begin(ReadWrite.READ);
 		boolean exists = d_datastore.getDefaultGraph().contains(dataset, RDF.Nodes.type, esClassDataset);
@@ -437,7 +423,7 @@ public class EventSource {
 	}
 	
 	public Node createDataset(Node dataset, Graph defaultGraphContent, Graph meta) {
-		Transactional trans = (Transactional) d_datastore;
+		Transactional trans = d_datastore;
 		trans.begin(ReadWrite.WRITE);
 		
 		addTriple(d_datastore, dataset, RDF.Nodes.type, esClassDataset);

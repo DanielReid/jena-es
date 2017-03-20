@@ -51,16 +51,16 @@ public class GraphStoreController {
 
 		dataset.begin(ReadWrite.READ);
 		try {
-			Graph rval;
+			Graph rval = GraphFactory.createGraphMem();
 			if (version == null) {
-				rval = target.get(dataset);
+				GraphUtil.addInto(rval, target.get(dataset));
 				version = dataset.getLatestEvent().getURI();
 			} else {
 				DatasetGraph view = dataset.getView(NodeFactory.createURI(version));
 				if (view == null) {
 					throw new VersionNotFoundException();
 				}
-				rval = target.get(view);
+				GraphUtil.addInto(rval, target.get(view));
 			}
 			response.setHeader(ESHeaders.VERSION, version);
 			response.setHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT + ", " + ESHeaders.ACCEPT_VERSION);
@@ -136,8 +136,8 @@ public class GraphStoreController {
 
 		Graph versionMetaData = Util.versionMetaData(request);
 		if (copyOf != null) {
-			Node graphRev = NodeFactory.createAnon();
-			Node newRevision = NodeFactory.createAnon();
+			Node graphRev = NodeFactory.createBlankNode();
+			Node newRevision = NodeFactory.createBlankNode();
 			if (target.isDefault()) {
 				versionMetaData.add(Triple.create(graphRev, RDF.Nodes.type, EventSource.esClassDefaultGraphRevision));
 			} else {

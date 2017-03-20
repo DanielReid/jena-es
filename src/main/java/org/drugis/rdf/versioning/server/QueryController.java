@@ -98,7 +98,7 @@ public class QueryController {
 		
 			response.setHeader("X-EventSource-Version", version);
 			response.setHeader("Vary", "Accept, X-Accept-EventSource-Version");
-			qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.create(dsg));
+			qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.wrap(dsg));
 		} catch (VersionNotFoundException e) {
 			d_log.debug("Closing due to VersionNotFound");
 			dataset.end();

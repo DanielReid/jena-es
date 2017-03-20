@@ -5,8 +5,8 @@ import java.util.Iterator;
 import org.apache.jena.riot.RDFDataMgr;
 import org.drugis.rdf.versioning.store.EventSource;
 
-import arq.cmd.CmdException;
-import arq.cmdline.ArgDecl;
+import jena.cmd.CmdException;
+import jena.cmd.ArgDecl;
 import arq.cmdline.CmdARQ;
 
 import org.apache.jena.graph.Node;

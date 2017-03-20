@@ -1,6 +1,4 @@
-import static org.apache.jena.graph.NodeFactory.createAnon;
-import static org.apache.jena.graph.NodeFactory.createLiteral;
-import static org.apache.jena.graph.NodeFactory.createURI;
+import static org.apache.jena.graph.NodeFactory.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -165,7 +163,7 @@ public class EventSourceTest {
 		DatasetGraphDelta delta = new DatasetGraphDelta(ds);
 		applyGraphMod(delta);
 		Graph meta = GraphFactory.createGraphMem();
-		Node root = createAnon();
+		Node root = createBlankNode();
 		meta.add(new Triple(root, RDF.Nodes.type, EventSource.esClassDatasetVersion));
 		meta.add(new Triple(root, EventSource.dctermsCreator, PETER_PARKER));
 		Node version = d_eventSource.writeToLog(d_spiderDatasetUri, delta, meta);
@@ -177,14 +175,7 @@ public class EventSourceTest {
 
 	@Test
 	public void testTransactionInterface() {
-		// We assume that the DSG implements Transactional, so fake it
-		DatasetGraph dataset = new DatasetGraphWithLock(d_datastore) {
-			@Override
-			protected void _abort() {
-				_end();
-			}
-		};
-		DatasetGraphEventSourcing ds = new DatasetGraphEventSourcing(new EventSource(dataset, "http://example.com/"), d_spiderDatasetUri);
+		DatasetGraphEventSourcing ds = new DatasetGraphEventSourcing(new EventSource(d_datastore, "http://example.com/"), d_spiderDatasetUri);
 
 		ds.begin(ReadWrite.READ);
 		checkDatasetAfterEvent2(ds);
@@ -212,11 +203,11 @@ public class EventSourceTest {
 	@Test public void testSkolemization() {
 		DatasetGraph ds = d_eventSource.getLatestVersion(d_spiderDatasetUri);
 		DatasetGraphDelta delta = new DatasetGraphDelta(ds);
-		Node spidermanAnon = NodeFactory.createAnon();
+		Node spidermanAnon = NodeFactory.createBlankNode();
 		delta.add(PETER_PARKER, PETER_PARKER, FOAF_KNOWS, spidermanAnon);
 		Node spidermanName = NodeFactory.createLiteral("Spiderman");
 		delta.add(PETER_PARKER, spidermanAnon, FOAF_NAME, spidermanName);
-		Node goblinAnon = NodeFactory.createAnon();
+		Node goblinAnon = NodeFactory.createBlankNode();
 		delta.add(PETER_PARKER, PETER_PARKER, FOAF_KNOWS, goblinAnon);
 
 		d_eventSource.writeToLog(d_spiderDatasetUri, delta);

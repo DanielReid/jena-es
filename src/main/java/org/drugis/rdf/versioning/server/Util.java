@@ -46,11 +46,7 @@ public class Util {
 		}
 		try {
 			final String[] newVersion = { null };
-			dataset.addCommitListener(new Observer() {
-				@Override
-				public void update(Observable o, Object arg) {
-					newVersion[0] = ((Node) arg).getURI();
-				}});
+			dataset.addCommitListener((o, arg) -> newVersion[0] = ((Node) arg).getURI());
 			action.run();
 			dataset.commit();
 			return newVersion[0];
@@ -67,10 +63,10 @@ public class Util {
 	public static Graph queryDataStore(EventSource eventSource, String query) {
 		Query theQuery = QueryFactory.create(query, Syntax.syntaxARQ);
 	
-		Transactional transactional = (Transactional)eventSource.getDataStore();
+		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		try {
-			QueryExecution qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.create(eventSource.getDataStore()));
+			QueryExecution qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.wrap(eventSource.getDataStore()));
 			Model model = qExec.execConstruct();
 			return model.getGraph();
 		} finally {
@@ -79,7 +75,7 @@ public class Util {
 	}
 
 	public static Graph getDataStoreGraph(EventSource eventSource, Node uri) {
-		Transactional transactional = (Transactional)eventSource.getDataStore();
+		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		Graph graph = eventSource.getDataStore().getGraph(uri);
 		transactional.end();
@@ -87,7 +83,7 @@ public class Util {
 	}
 	
 	public static void assertDatasetExists(EventSource eventSource, Node dataset) {
-		Transactional transactional = (Transactional)eventSource.getDataStore();
+		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		boolean exists = eventSource.datasetExists(dataset);
 		transactional.end();
@@ -103,7 +99,7 @@ public class Util {
 	static Graph versionMetaData(HttpServletRequest request) {
 		Graph graph = GraphFactory.createGraphMem();
 		
-		Node root = NodeFactory.createAnon();
+		Node root = NodeFactory.createBlankNode();
 		graph.add(new Triple(root, RDF.Nodes.type, EventSource.esClassDatasetVersion));
 		
 		String creator = request.getHeader("X-EventSource-Creator");

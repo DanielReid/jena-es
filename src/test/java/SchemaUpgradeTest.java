@@ -92,7 +92,6 @@ public class SchemaUpgradeTest {
     String query = new String(Files.readAllBytes(Paths.get("testQuery1.sparql")));
     SchemaUpgrade schemaUpgrade = new SchemaUpgrade(d_datastore,"http://example.com", query);
     schemaUpgrade.run();
-    d_datastore.close();
     Graph base = GraphFactory.createGraphMem();
     Graph graph = EventSource.applyRevision(d_datastore, base, d_rev1Uri);
     checkGraphRev1(graph);
