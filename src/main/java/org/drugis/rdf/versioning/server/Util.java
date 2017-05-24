@@ -12,22 +12,22 @@ import org.drugis.rdf.versioning.store.DatasetGraphEventSourcing;
 import org.drugis.rdf.versioning.store.DatasetNotFoundException;
 import org.drugis.rdf.versioning.store.EventSource;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.query.Syntax;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.sparql.core.Transactional;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.Syntax;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.vocabulary.RDF;
 
 public class Util {
 	/**
@@ -46,11 +46,7 @@ public class Util {
 		}
 		try {
 			final String[] newVersion = { null };
-			dataset.addCommitListener(new Observer() {
-				@Override
-				public void update(Observable o, Object arg) {
-					newVersion[0] = ((Node) arg).getURI();
-				}});
+			dataset.addCommitListener((o, arg) -> newVersion[0] = ((Node) arg).getURI());
 			action.run();
 			dataset.commit();
 			return newVersion[0];
@@ -67,10 +63,10 @@ public class Util {
 	public static Graph queryDataStore(EventSource eventSource, String query) {
 		Query theQuery = QueryFactory.create(query, Syntax.syntaxARQ);
 	
-		Transactional transactional = (Transactional)eventSource.getDataStore();
+		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		try {
-			QueryExecution qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.create(eventSource.getDataStore()));
+			QueryExecution qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.wrap(eventSource.getDataStore()));
 			Model model = qExec.execConstruct();
 			return model.getGraph();
 		} finally {
@@ -79,7 +75,7 @@ public class Util {
 	}
 
 	public static Graph getDataStoreGraph(EventSource eventSource, Node uri) {
-		Transactional transactional = (Transactional)eventSource.getDataStore();
+		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		Graph graph = eventSource.getDataStore().getGraph(uri);
 		transactional.end();
@@ -87,7 +83,7 @@ public class Util {
 	}
 	
 	public static void assertDatasetExists(EventSource eventSource, Node dataset) {
-		Transactional transactional = (Transactional)eventSource.getDataStore();
+		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		boolean exists = eventSource.datasetExists(dataset);
 		transactional.end();
@@ -103,7 +99,7 @@ public class Util {
 	static Graph versionMetaData(HttpServletRequest request) {
 		Graph graph = GraphFactory.createGraphMem();
 		
-		Node root = NodeFactory.createAnon();
+		Node root = NodeFactory.createBlankNode();
 		graph.add(new Triple(root, RDF.Nodes.type, EventSource.esClassDatasetVersion));
 		
 		String creator = request.getHeader("X-EventSource-Creator");

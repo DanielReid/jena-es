@@ -16,7 +16,7 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import com.hp.hpl.jena.query.ResultSetFormatter;
+import org.apache.jena.query.ResultSetFormatter;
 
 public class BooleanResultMessageConverter extends AbstractHttpMessageConverter<BooleanResult> {
 	private static List<MediaType> s_supported = new ArrayList<MediaType>();

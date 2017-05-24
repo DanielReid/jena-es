@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.query.QueryParseException;
-import com.hp.hpl.jena.query.Syntax;
-import com.hp.hpl.jena.sparql.modify.UsingList;
-import com.hp.hpl.jena.update.UpdateAction;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.query.QueryParseException;
+import org.apache.jena.query.Syntax;
+import org.apache.jena.sparql.modify.UsingList;
+import org.apache.jena.update.UpdateAction;
 
 @Controller
 @RequestMapping("/datasets/{datasetId}/update")

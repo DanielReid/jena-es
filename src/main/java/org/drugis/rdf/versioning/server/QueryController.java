@@ -21,19 +21,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QueryParseException;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.sparql.core.DatasetDescription;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DynamicDatasets;
-import com.hp.hpl.jena.sparql.core.Transactional;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QueryParseException;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.sparql.core.DatasetDescription;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DynamicDatasets;
+import org.apache.jena.sparql.core.Transactional;
 
 @Controller
 @Cacheable("queries")
@@ -100,7 +100,7 @@ public class QueryController {
 		
 			response.setHeader("X-EventSource-Version", version);
 			response.setHeader("Vary", "Accept, X-Accept-EventSource-Version");
-			qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.create(dsg));
+			qExec = QueryExecutionFactory.create(theQuery, DatasetFactory.wrap(dsg));
 		} catch (VersionNotFoundException e) {
 			d_log.debug("Closing due to VersionNotFound");
 			dataset.end();

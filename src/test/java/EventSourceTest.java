@@ -1,6 +1,4 @@
-import static com.hp.hpl.jena.graph.NodeFactory.createAnon;
-import static com.hp.hpl.jena.graph.NodeFactory.createLiteral;
-import static com.hp.hpl.jena.graph.NodeFactory.createURI;
+import static org.apache.jena.graph.NodeFactory.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -15,17 +13,17 @@ import org.drugis.rdf.versioning.store.EventSource;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DatasetGraphWithLock;
-import com.hp.hpl.jena.sparql.core.Quad;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.util.IteratorCollection;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphWithLock;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.util.IteratorCollection;
+import org.apache.jena.vocabulary.RDF;
 
 
 public class EventSourceTest {
@@ -34,6 +32,8 @@ public class EventSourceTest {
 			DATASET="http://example.com/datasets/",
 			VERSION="http://example.com/versions/",
 			REVISION="http://example.com/revisions/",
+            ASSERT="http://example.com/assert/",
+            ASSERTIONS="http://example.com/assertions/",
 			FOAF="http://xmlns.com/foaf/0.1/",
 			ID_GOBLIN_DATASET = "ubb245f8sz",
 			ID_SPIDER_DATASET = "qmk2x16nz1",
@@ -44,6 +44,7 @@ public class EventSourceTest {
 			ID_REV1 = "38fc1de7a-43ea-11e4-a12c-3314171ce0bb",
 			ID_REV2 = "302431f4-43e8-11e4-8745-c72e64fa66b1",
 			ID_REV3 = "44ea0618-43e8-11e4-bcfb-bba47531d497";
+
 
 	private static final Node FOAF_PERSON = createURI(FOAF + "Person");
 	private static final Node FOAF_NAME = createURI(FOAF + "name");
@@ -63,6 +64,8 @@ public class EventSourceTest {
 	private Node d_rev1Uri;
 	private Node d_rev2Uri;
 	private Node d_rev3Uri;
+    private Node d_assert1Uri;
+    private Node d_assertions1Uri;
 
 
 	@Before
@@ -78,6 +81,8 @@ public class EventSourceTest {
 		d_rev1Uri = createURI(REVISION + ID_REV1);
 		d_rev2Uri = createURI(REVISION + ID_REV2);
 		d_rev3Uri = createURI(REVISION + ID_REV3);
+		d_assert1Uri = createURI(ASSERT + ID_REV1);
+		d_assertions1Uri = createURI(ASSERTIONS + ID_REV1);
 	}
 
 	@Test
@@ -91,40 +96,45 @@ public class EventSourceTest {
 		assertTrue(d_datastore.getDefaultGraph().contains(d_rev1Uri, RDF.Nodes.type, createURI(ES + "Revision")));
 		assertTrue(d_datastore.getDefaultGraph().contains(d_rev2Uri, RDF.Nodes.type, createURI(ES + "Revision")));
 		assertTrue(d_datastore.getDefaultGraph().contains(d_rev3Uri, RDF.Nodes.type, createURI(ES + "Revision")));
+        Graph assertGraph = d_datastore.getGraph(d_assert1Uri);
+        Graph assertionsGraph = d_datastore.getGraph(d_assertions1Uri);
+        assertTrue(assertGraph.size() > 0);
+        assertTrue(assertionsGraph.size() == 0);
 	}
-	
+
 	@Test
 	public void testApplyRevision() {
 		Graph base = GraphFactory.createGraphMem();
 		Graph graph = EventSource.applyRevision(d_datastore, base, d_rev1Uri);
 		checkGraphRev1(graph);
-		
+
 		graph = EventSource.applyRevision(d_datastore, graph, d_rev3Uri);
 		checkGraphRev3(graph);
 	}
-	
+
 	@Test
 	public void testGetRevision() {
 		checkGraphRev1(d_eventSource.getRevision(d_rev1Uri));
 		checkGraphRev3(d_eventSource.getRevision(d_rev3Uri));
 	}
-	
+
 	@Test
 	public void testGetVersion() {
 		DatasetGraph ds;
 		ds = d_eventSource.getVersion(d_goblinDatasetUri, d_goblinV0Uri);
 		checkDatasetEmpty(ds);
-		
+
 		ds = d_eventSource.getVersion(d_goblinDatasetUri, d_goblinV1Uri);
 		checkDatasetAfterEvent1(ds);
-		
+
 		ds = d_eventSource.getVersion(d_spiderDatasetUri, d_spiderV0Uri);
 		checkDatasetAfterEvent1(ds);
-		
+
 		ds = d_eventSource.getVersion(d_spiderDatasetUri, d_spiderV1Uri);
 		checkDatasetAfterEvent2(ds);
 	}
-	
+
+	@Test
 	public void testGetInvalidVersion() {
 		assertTrue(d_eventSource.getVersion(d_goblinDatasetUri, d_spiderV0Uri) == null);
 	}
@@ -134,26 +144,26 @@ public class EventSourceTest {
 		assertEquals(d_goblinV1Uri, d_eventSource.getLatestVersionUri(d_goblinDatasetUri));
 		assertEquals(d_spiderV1Uri, d_eventSource.getLatestVersionUri(d_spiderDatasetUri));
 	}
-	
+
 	@Test
 	public void testWriteToLog() {
 		DatasetGraph ds = d_eventSource.getLatestVersion(d_spiderDatasetUri);
 		DatasetGraphDelta delta = new DatasetGraphDelta(ds);
 		applyGraphMod(delta);
 		d_eventSource.writeToLog(d_spiderDatasetUri, delta);
-		
+
 		ds = d_eventSource.getLatestVersion(d_spiderDatasetUri);
 		RDFDataMgr.write(System.out, d_datastore.getDefaultGraph(), Lang.TURTLE);
 		checkGraphAfterMod(ds);
 	}
-	
+
 	@Test
 	public void testWriteToLogWithMetaData() {
 		DatasetGraph ds = d_eventSource.getLatestVersion(d_spiderDatasetUri);
 		DatasetGraphDelta delta = new DatasetGraphDelta(ds);
 		applyGraphMod(delta);
 		Graph meta = GraphFactory.createGraphMem();
-		Node root = createAnon();
+		Node root = createBlankNode();
 		meta.add(new Triple(root, RDF.Nodes.type, EventSource.esClassDatasetVersion));
 		meta.add(new Triple(root, EventSource.dctermsCreator, PETER_PARKER));
 		Node version = d_eventSource.writeToLog(d_spiderDatasetUri, delta, meta);
@@ -165,14 +175,7 @@ public class EventSourceTest {
 
 	@Test
 	public void testTransactionInterface() {
-		// We assume that the DSG implements Transactional, so fake it
-		DatasetGraph dataset = new DatasetGraphWithLock(d_datastore) {
-			@Override
-			protected void _abort() {
-				_end();
-			}
-		};
-		DatasetGraphEventSourcing ds = new DatasetGraphEventSourcing(new EventSource(dataset, "http://example.com/"), d_spiderDatasetUri);
+		DatasetGraphEventSourcing ds = new DatasetGraphEventSourcing(new EventSource(d_datastore, "http://example.com/"), d_spiderDatasetUri);
 
 		ds.begin(ReadWrite.READ);
 		checkDatasetAfterEvent2(ds);
@@ -186,7 +189,7 @@ public class EventSourceTest {
 		ds.begin(ReadWrite.READ);
 		checkDatasetAfterEvent2(ds);
 		ds.end();
-		
+
 		ds.begin(ReadWrite.WRITE);
 		applyGraphMod(ds);
 		checkGraphAfterMod(ds);
@@ -196,30 +199,30 @@ public class EventSourceTest {
 		checkGraphAfterMod(ds);
 		ds.end();
 	}
-	
+
 	@Test public void testSkolemization() {
 		DatasetGraph ds = d_eventSource.getLatestVersion(d_spiderDatasetUri);
 		DatasetGraphDelta delta = new DatasetGraphDelta(ds);
-		Node spidermanAnon = NodeFactory.createAnon();
+		Node spidermanAnon = NodeFactory.createBlankNode();
 		delta.add(PETER_PARKER, PETER_PARKER, FOAF_KNOWS, spidermanAnon);
 		Node spidermanName = NodeFactory.createLiteral("Spiderman");
 		delta.add(PETER_PARKER, spidermanAnon, FOAF_NAME, spidermanName);
-		Node goblinAnon = NodeFactory.createAnon();
+		Node goblinAnon = NodeFactory.createBlankNode();
 		delta.add(PETER_PARKER, PETER_PARKER, FOAF_KNOWS, goblinAnon);
 
 		d_eventSource.writeToLog(d_spiderDatasetUri, delta);
-		
+
 		ds = d_eventSource.getLatestVersion(d_spiderDatasetUri);
 		List<Quad> quads = IteratorCollection.iteratorToList(ds.find(PETER_PARKER, PETER_PARKER, FOAF_KNOWS, Node.ANY));
 		assertEquals(2, quads.size());
 		assertFalse(quads.get(0).getObject().isBlank());
 		assertFalse(quads.get(1).getObject().isBlank());
 		assertFalse(quads.get(0).getObject().equals(quads.get(1).getObject()));
-		
+
 		List<Quad> quads2 = IteratorCollection.iteratorToList(ds.find(PETER_PARKER, Node.ANY, FOAF_NAME, spidermanName));
 		assertEquals(1, quads2.size());
 		assertFalse(quads2.get(0).getSubject().isBlank());
-		
+
 		assertTrue(quads.get(0).getObject().equals(quads2.get(0).getSubject()) || quads.get(1).getObject().equals(quads2.get(0).getSubject()));
 	}
 

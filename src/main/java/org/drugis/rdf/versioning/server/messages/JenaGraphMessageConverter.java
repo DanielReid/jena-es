@@ -20,12 +20,12 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.sparql.graph.GraphFactory;
 
 public class JenaGraphMessageConverter extends AbstractHttpMessageConverter<Graph> {
 	private static MediaType s_turtle = MediaType.parseMediaType("text/turtle");
-	private static List<MediaType> s_supported = new ArrayList<MediaType>();
+	private static List<MediaType> s_supported = new ArrayList<>();
 	static {
 		// Add all supported languages
 		for (Lang lang : RDFLanguages.getRegisteredLanguages()) {

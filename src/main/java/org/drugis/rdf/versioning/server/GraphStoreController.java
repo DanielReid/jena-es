@@ -22,21 +22,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.vocabulary.RDF;
 
 @Controller
 @RequestMapping("/datasets/{datasetId}/data")
 public class GraphStoreController {
-	@Autowired EventSource d_eventSource;
-	Log d_log = LogFactory.getLog(getClass());
+	@Autowired
+	private EventSource d_eventSource;
+	private Log d_log = LogFactory.getLog(getClass());
 
 	@RequestMapping(method={RequestMethod.GET, RequestMethod.HEAD})
 	@ResponseBody
@@ -52,16 +53,16 @@ public class GraphStoreController {
 
 		dataset.begin(ReadWrite.READ);
 		try {
-			Graph rval;
+			Graph rval = GraphFactory.createGraphMem();
 			if (version == null) {
-				rval = target.get(dataset);
+				GraphUtil.addInto(rval, target.get(dataset));
 				version = dataset.getLatestEvent().getURI();
 			} else {
 				DatasetGraph view = dataset.getView(NodeFactory.createURI(version));
 				if (view == null) {
 					throw new VersionNotFoundException();
 				}
-				rval = target.get(view);
+				GraphUtil.addInto(rval, target.get(view));
 			}
 			response.setHeader(ESHeaders.VERSION, version);
 			response.setHeader(HttpHeaders.VARY, HttpHeaders.ACCEPT + ", " + ESHeaders.ACCEPT_VERSION);
@@ -84,17 +85,12 @@ public class GraphStoreController {
 
 		d_log.debug("GraphStore PUT " + datasetId + " " + target);
 
-		Runnable action = new Runnable() {
-			@Override
-			public void run() {
-				target.set(dataset, graph);
-			}
-		};
+		Runnable action = () -> target.set(dataset, graph);
 		String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
 		response.setHeader("X-EventSource-Version", newVersion);
 	}
 	
-	public String handleCopyOfParam(Graph graph, Map<String, String> params) {
+	private String handleCopyOfParam(Graph graph, Map<String, String> params) {
 		System.out.println(graph);
 		System.out.println(params);
 		if ((graph == null && !params.containsKey("copyOf")) || (graph != null && params.containsKey("copyOf"))) {
@@ -124,21 +120,18 @@ public class GraphStoreController {
 
 		final Node sourceRevisionUri = copyOf != null ? NodeFactory.createURI(copyOf) : null;
 
-		Runnable action = new Runnable() {
-			@Override
-			public void run() {
-				if (copyOf != null) {
-					target.set(dataset, d_eventSource.getRevision(sourceRevisionUri));
-				} else {
-					GraphUtil.addInto(target.get(dataset), graph);
-				}
-			}
-		};
+		Runnable action = () -> {
+      if (copyOf != null) {
+        target.set(dataset, d_eventSource.getRevision(sourceRevisionUri));
+      } else {
+        GraphUtil.addInto(target.get(dataset), graph);
+      }
+    };
 
 		Graph versionMetaData = Util.versionMetaData(request);
 		if (copyOf != null) {
-			Node graphRev = NodeFactory.createAnon();
-			Node newRevision = NodeFactory.createAnon();
+			Node graphRev = NodeFactory.createBlankNode();
+			Node newRevision = NodeFactory.createBlankNode();
 			if (target.isDefault()) {
 				versionMetaData.add(Triple.create(graphRev, RDF.Nodes.type, EventSource.esClassDefaultGraphRevision));
 			} else {
@@ -236,7 +229,7 @@ public class GraphStoreController {
 	static class NamedGraph extends TargetGraph {
 		private Node d_graphNode;
 
-		public NamedGraph(String uri) {
+		NamedGraph(String uri) {
 			d_graphNode = NodeFactory.createURI(uri);
 		}
 		
