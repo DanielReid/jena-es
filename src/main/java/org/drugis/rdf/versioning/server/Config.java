@@ -30,23 +30,23 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.tdb.TDBFactory;
 
 @Configuration
-@EnableCaching
+//@EnableCaching
 public class Config extends WebMvcAutoConfigurationAdapter {
   public static final String BASE_URI = "http://example.com/"; // FIXME
   @Value("${EVENT_SOURCE_URI_PREFIX}")
   private String uriPrefix;
 
-  @Bean
-  public CacheManager cacheManager() {
-    SimpleCacheManager cacheManager = new SimpleCacheManager();
-    cacheManager.setCaches(Arrays.asList(
-            new ConcurrentMapCache("dataStores"),
-            new ConcurrentMapCache("revisions"),
-            new ConcurrentMapCache("datasetStore"),
-            new ConcurrentMapCache("queries"),
-            new ConcurrentMapCache("versionedGraphs")));
-    return cacheManager;
-  }
+//  @Bean
+//  public CacheManager cacheManager() {
+//    SimpleCacheManager cacheManager = new SimpleCacheManager();
+//    cacheManager.setCaches(Arrays.asList(
+//            new ConcurrentMapCache("dataStores"),
+//            new ConcurrentMapCache("revisions"),
+//            new ConcurrentMapCache("datasetStore"),
+//            new ConcurrentMapCache("queries"),
+//            new ConcurrentMapCache("versionedGraphs")));
+//    return cacheManager;
+//  }
 
   @Bean
   public String datasetHistoryQuery() throws IOException {

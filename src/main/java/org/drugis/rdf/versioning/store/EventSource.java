@@ -75,7 +75,7 @@ public class EventSource {
 		SKOLEM = uriPrefix + "/.well-known/genid/";
 	}
 
-	@Cacheable("dataStores")public DatasetGraph getDataStore() {
+	public DatasetGraph getDataStore() {
 		return d_datastore;
 	}
 
@@ -114,7 +114,7 @@ public class EventSource {
     return map;
   }
 
-  @Cacheable("versionedGraphs")
+
   public DatasetGraph getVersion(Node dataset, Node version) {
     assertDatasetExists(dataset);
     if (!versionExists(dataset, version)) {
@@ -157,7 +157,6 @@ public class EventSource {
     return getVersion(dataset, getLatestVersionUri(dataset));
   }
 
-  @Cacheable("revisions")
   public Graph getRevision(Node revision) {
     if (!revisionExists(revision)) {
       return null;
