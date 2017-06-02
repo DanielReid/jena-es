@@ -36,7 +36,6 @@ import org.apache.jena.sparql.core.DynamicDatasets;
 import org.apache.jena.sparql.core.Transactional;
 
 @Controller
-@Cacheable("queries")
 @RequestMapping("/datasets/{datasetId}/query")
 public class QueryController {
 	@Autowired EventSource d_eventSource;

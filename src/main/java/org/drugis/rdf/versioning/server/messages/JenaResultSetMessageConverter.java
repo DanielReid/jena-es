@@ -1,13 +1,8 @@
 package org.drugis.rdf.versioning.server.messages;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.ResultSetMgr;
 import org.apache.jena.riot.resultset.ResultSetLang;
@@ -18,15 +13,19 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import org.apache.jena.query.ResultSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class JenaResultSetMessageConverter extends AbstractHttpMessageConverter<ResultSet> {
-	Log d_log = LogFactory.getLog(getClass());
+	private Log d_log = LogFactory.getLog(getClass());
 	
-	private static List<MediaType> s_supported = new ArrayList<MediaType>();
-	private static Map<MediaType, Lang> s_lang = new HashMap<MediaType, Lang>();
+	private static List<MediaType> s_supported = new ArrayList<>();
+	private static Map<MediaType, Lang> s_lang = new HashMap<>();
 	static {
-		Lang [] langs = {
+		Lang [] languages = {
 				ResultSetLang.SPARQLResultSetJSON,
 				ResultSetLang.SPARQLResultSetCSV,
 				ResultSetLang.SPARQLResultSetTSV,
@@ -34,7 +33,7 @@ public class JenaResultSetMessageConverter extends AbstractHttpMessageConverter<
 				ResultSetLang.SPARQLResultSetText,
 				ResultSetLang.SPARQLResultSetThrift
 		};
-		ResultSetUtil.setSupportedMediaTypes(langs, s_supported, s_lang);
+		ResultSetUtil.setSupportedMediaTypes(languages, s_supported, s_lang);
 		s_supported.add(MediaType.ALL); // Make sure we get all ResultSets so we can close them
 	}
 

@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import org.drugis.rdf.versioning.store.DatasetGraphEventSourcing;
 import org.drugis.rdf.versioning.store.EventSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
@@ -73,6 +74,7 @@ public class GraphStoreController {
 	}
 	
 	@RequestMapping(method=RequestMethod.PUT)
+	@CacheEvict(cacheNames = "datasets", key="#datasetId")
 	public void put(
 			@PathVariable String datasetId,
 			@RequestParam Map<String,String> params,
@@ -105,6 +107,7 @@ public class GraphStoreController {
 	}
 	
 	@RequestMapping(method=RequestMethod.POST)
+	@CacheEvict(cacheNames = "datasets", key="#datasetId")
 	public void post(
 			@PathVariable String datasetId,
 			final @RequestParam Map<String,String> params,
@@ -169,7 +172,7 @@ public class GraphStoreController {
 		response.setHeader("X-EventSource-Version", newVersion);
 	}
 
-	@Cacheable("datasetStore")
+	@Cacheable(cacheNames = "datasets")
 	private DatasetGraphEventSourcing getDataset(String datasetId) {
 		return Util.getDataset(d_eventSource, datasetId);
 	}
