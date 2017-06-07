@@ -15,6 +15,7 @@ import org.ehcache.expiry.Duration;
 import org.ehcache.expiry.Expirations;
 import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Configuration
+@SpringBootConfiguration
 @EnableCaching
 public class Config extends WebMvcConfigurerAdapter {
   public static final String BASE_URI = "http://example.com/"; // FIXME
@@ -46,7 +47,7 @@ public class Config extends WebMvcConfigurerAdapter {
   @Bean
   public CacheManager cacheManager() {
     long numberOfCacheItems = 100;
-    long ttl = 60*60*4;
+    long ttl = 60*60*25;
 
     CacheConfiguration<Object, Object> cacheConfiguration = CacheConfigurationBuilder
             .newCacheConfigurationBuilder(Object.class, Object.class, ResourcePoolsBuilder.heap(numberOfCacheItems))
@@ -62,8 +63,8 @@ public class Config extends WebMvcConfigurerAdapter {
 
   private Map<String, CacheConfiguration<?, ?>> createCacheConfigurations(CacheConfiguration<Object, Object> cacheConfiguration) {
     Map<String, CacheConfiguration<?, ?>> caches = new HashMap<>();
-    caches.put("revisions", cacheConfiguration);
     caches.put("datasets", cacheConfiguration);
+    caches.put("queryDataStore", cacheConfiguration);
     return caches;
   }
 
@@ -101,12 +102,7 @@ public class Config extends WebMvcConfigurerAdapter {
   @Bean
   public EventSource eventSource() {
     final DatasetGraph storage = TDBFactory.createDatasetGraph("DB");
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        storage.close();
-      }
-    });
+    Runtime.getRuntime().addShutdownHook(new Thread(storage::close));
     return new EventSource(storage, uriPrefix);
   }
 

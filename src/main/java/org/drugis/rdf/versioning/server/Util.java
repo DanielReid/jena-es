@@ -62,7 +62,7 @@ public class Util {
 
 	public static Graph queryDataStore(EventSource eventSource, String query) {
 		Query theQuery = QueryFactory.create(query, Syntax.syntaxARQ);
-	
+
 		Transactional transactional = eventSource.getDataStore();
 		transactional.begin(ReadWrite.READ);
 		try {

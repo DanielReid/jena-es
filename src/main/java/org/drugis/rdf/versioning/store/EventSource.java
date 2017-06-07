@@ -16,11 +16,16 @@ import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.drugis.rdf.versioning.server.Util;
-import org.springframework.cache.annotation.Cacheable;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static org.ehcache.config.builders.CacheConfigurationBuilder.newCacheConfigurationBuilder;
+import static org.ehcache.config.builders.CacheManagerBuilder.newCacheManagerBuilder;
+import static org.ehcache.config.builders.ResourcePoolsBuilder.heap;
 
 public class EventSource {
   private static final String ES = "http://drugis.org/eventSourcing/es#",
@@ -46,24 +51,27 @@ public class EventSource {
   public static final Node dctermsCreator = NodeFactory.createURI(DCTERMS + "creator");
   public static final Node dctermsTitle = NodeFactory.createURI(DCTERMS + "title");
   public static final Node dctermsDescription = NodeFactory.createURI(DCTERMS + "description");
-
   public static class EventNotFoundException extends RuntimeException {
-    private static final long serialVersionUID = -1603163798182523814L;
 
+    private static final long serialVersionUID = -1603163798182523814L;
     public EventNotFoundException(String message) {
       super(message);
     }
-  }
 
+  }
   private IdGenerator d_idgen = IdGenerators.newFlakeIdGenerator();
 
   private DatasetGraph d_datastore;
+
   private String VERSION;
   public final String REVISION;
   public final String ASSERT;
   public final String RETRACT;
   private String SKOLEM;
   private String d_uriPrefix;
+  private CacheManager cacheManager;
+
+  private Cache<String, Graph> revisionsCache;
 
   public EventSource(DatasetGraph dataStore, String uriPrefix) {
     d_datastore = dataStore;
@@ -74,6 +82,10 @@ public class EventSource {
     ASSERT = uriPrefix + "/assert/";
     RETRACT = uriPrefix + "/retract/";
     SKOLEM = uriPrefix + "/.well-known/genid/";
+    CacheManager cacheManager = newCacheManagerBuilder()
+            .withCache("revisions", newCacheConfigurationBuilder(String.class, Graph.class, heap(10)))
+            .build(true);
+    revisionsCache = cacheManager.getCache("revisions",String.class, Graph.class);
   }
 
   public DatasetGraph getDataStore() {
@@ -114,7 +126,6 @@ public class EventSource {
     }
     return map;
   }
-
 
   public DatasetGraph getVersion(Node dataset, Node version) {
     assertDatasetExists(dataset);
@@ -158,17 +169,27 @@ public class EventSource {
     return getVersion(dataset, getLatestVersionUri(dataset));
   }
 
-  @Cacheable(cacheNames = "revisions")
-  public Graph getRevision(Node revision) {
-    if (!revisionExists(revision)) {
+  public Graph getRevision(Node requestedRevision) {
+    Graph cachedGraph = revisionsCache.get(requestedRevision.getURI());
+    if(cachedGraph!=null){
+      return cachedGraph;
+    }
+    if (!revisionExists(requestedRevision)) {
       return null;
     }
-    Node previous = Util.getUniqueOptionalObject(d_datastore.getDefaultGraph().find(revision, esPropertyPrevious, Node.ANY));
+    ArrayList<Node> previousRevisions = new ArrayList<>();
     Graph graph = GraphFactory.createGraphMem();
-    if (previous != null) {
-      graph = getRevision(previous);
+    Node previous = Util.getUniqueOptionalObject(d_datastore.getDefaultGraph().find(requestedRevision, esPropertyPrevious, Node.ANY));
+    while (previous != null) {
+      previousRevisions.add(previous);
+      previous = Util.getUniqueOptionalObject(d_datastore.getDefaultGraph().find(previous, esPropertyPrevious, Node.ANY));
     }
-    return applyRevision(d_datastore, graph, revision);
+    for (int i = previousRevisions.size(); i != 0; --i) {
+      graph = applyRevision(d_datastore, graph, previousRevisions.get(i - 1));
+    }
+    graph = applyRevision(d_datastore, graph, requestedRevision);
+    revisionsCache.put(requestedRevision.getURI(), graph);
+    return graph;
   }
 
   private static Graph matchingGraph(DatasetGraph eventSource, Iterator<Triple> result) {

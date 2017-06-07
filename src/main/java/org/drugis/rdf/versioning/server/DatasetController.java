@@ -39,6 +39,7 @@ public class DatasetController {
 	@Autowired String currentMergedRevisionsQuery;
 	@Autowired String datasetHistoryQuery;
 	@Autowired String allMergedRevisionsQuery;
+
 	Log d_log = LogFactory.getLog(getClass());
 
 	@RequestMapping(value="", method=RequestMethod.GET, produces="text/html")
