@@ -50,31 +50,13 @@ public class SchemaUpgrade {
 
   private String d_query;
 
-  public static void main(String[] args) throws IOException {
-    final DatasetGraph storage = TDBFactory.createDatasetGraph("DB");
-    String uriPrefix = System.getenv("EVENT_SOURCE_URI_PREFIX");
-    if (uriPrefix == null || uriPrefix.isEmpty()) {
-      System.err.println("You must set $EVENT_SOURCE_URI_PREFIX in the environment");
-      System.exit(1);
-    }
-
-    if (args.length != 1) {
-      System.err.println("You must supply the name of a SPARQL update query file");
-    }
-
-    String query = new String(Files.readAllBytes(Paths.get(args[0])));
-
-    new SchemaUpgrade(storage, uriPrefix, query).run();
-    storage.close();
-  }
-
-
   public SchemaUpgrade(DatasetGraph storage, String uriPrefix, String query) {
     d_storage = storage;
     d_versionInfo = d_storage.getDefaultGraph();
     d_eventSource = new EventSource(storage, uriPrefix);
     d_query = query;
   }
+
 
   public void run() {
     ExtendedIterator<Triple> allRevisions = d_versionInfo.find(Node.ANY, RDF.Nodes.type, EventSource.esClassRevision);
@@ -189,5 +171,23 @@ public class SchemaUpgrade {
     List<Node> list = d_backlog.computeIfAbsent(previous, k -> new ArrayList<>());
 
     list.add(revision);
+  }
+
+  public static void main(String[] args) throws IOException {
+    final DatasetGraph storage = TDBFactory.createDatasetGraph("DB");
+    String uriPrefix = System.getenv("EVENT_SOURCE_URI_PREFIX");
+    if (uriPrefix == null || uriPrefix.isEmpty()) {
+      System.err.println("You must set $EVENT_SOURCE_URI_PREFIX in the environment");
+      System.exit(1);
+    }
+
+    if (args.length != 1) {
+      System.err.println("You must supply the name of a SPARQL update query file");
+    }
+
+    String query = new String(Files.readAllBytes(Paths.get(args[0])));
+
+    new SchemaUpgrade(storage, uriPrefix, query).run();
+    storage.close();
   }
 }
