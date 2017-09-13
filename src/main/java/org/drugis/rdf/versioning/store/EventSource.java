@@ -51,14 +51,17 @@ public class EventSource {
   public static final Node dctermsCreator = NodeFactory.createURI(DCTERMS + "creator");
   public static final Node dctermsTitle = NodeFactory.createURI(DCTERMS + "title");
   public static final Node dctermsDescription = NodeFactory.createURI(DCTERMS + "description");
+
   public static class EventNotFoundException extends RuntimeException {
 
     private static final long serialVersionUID = -1603163798182523814L;
+
     public EventNotFoundException(String message) {
       super(message);
     }
 
   }
+
   private IdGenerator d_idgen = IdGenerators.newFlakeIdGenerator();
 
   private DatasetGraph d_datastore;
@@ -83,9 +86,9 @@ public class EventSource {
     RETRACT = uriPrefix + "/retract/";
     SKOLEM = uriPrefix + "/.well-known/genid/";
     CacheManager cacheManager = newCacheManagerBuilder()
-            .withCache("revisions", newCacheConfigurationBuilder(String.class, Graph.class, heap(10)))
+            .withCache("revisions", newCacheConfigurationBuilder(String.class, Graph.class, heap(1000)))
             .build(true);
-    revisionsCache = cacheManager.getCache("revisions",String.class, Graph.class);
+    revisionsCache = cacheManager.getCache("revisions", String.class, Graph.class);
   }
 
   public DatasetGraph getDataStore() {
@@ -171,7 +174,7 @@ public class EventSource {
 
   public Graph getRevision(Node requestedRevision) {
     Graph cachedGraph = revisionsCache.get(requestedRevision.getURI());
-    if(cachedGraph!=null){
+    if (cachedGraph != null) {
       return cachedGraph;
     }
     if (!revisionExists(requestedRevision)) {
