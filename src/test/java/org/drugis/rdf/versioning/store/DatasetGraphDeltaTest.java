@@ -1,15 +1,4 @@
-import static org.apache.jena.graph.NodeFactory.createLiteral;
-import static org.apache.jena.graph.NodeFactory.createURI;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-
-import org.drugis.rdf.versioning.store.DatasetGraphDelta;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+package org.drugis.rdf.versioning.store;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -19,6 +8,15 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.graph.GraphFactory;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.Collections;
+
+import static org.apache.jena.graph.NodeFactory.createLiteral;
+import static org.apache.jena.graph.NodeFactory.createURI;
+import static org.junit.Assert.*;
 
 
 @SuppressWarnings("deprecation")

@@ -4,7 +4,6 @@ PREFIX es: <http://drugis.org/eventSourcing/es#>
 CONSTRUCT {
   ?mergedRev es:dataset ?mergedDataset .
 } WHERE {
-  $dataset es:head/es:previous*/(es:graph_revision|es:default_graph_revision)/es:revision? ?rev .
-  ?rev es:merged_revision ?mergedRev .
-  ?mergedDataset es:head/es:previous*/(es:graph_revision|es:default_graph_revision)/es:revision ?mergedRev .
+  $dataset es:head/es:previous*/(es:graph_revision|es:default_graph_revision)/es:revision/es:merged_revision ?mergedRev .
+  ?mergedRev ^es:revision/(^es:graph_revision|^es:default_graph_revision)/(^es:previous)*/^es:head ?mergedDataset .
 }
