@@ -4,21 +4,22 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphUtil;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.compose.Delta;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DatasetGraphBase;
-import com.hp.hpl.jena.sparql.core.DatasetGraphFactory;
-import com.hp.hpl.jena.sparql.core.GraphView;
-import com.hp.hpl.jena.sparql.core.Quad;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.compose.Delta;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphBase;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.GraphView;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.graph.GraphFactory;
 
 /**
  * A read-write Dataset that tracks changes.
  */
-@SuppressWarnings( "deprecation" )
+
 public class DatasetGraphDelta extends DatasetGraphBase {
 	
 	private DatasetGraph d_next;
@@ -27,8 +28,8 @@ public class DatasetGraphDelta extends DatasetGraphBase {
 
 	public DatasetGraphDelta(DatasetGraph base) {
 		d_base = base;
-		d_next = DatasetGraphFactory.create(d_base);
-		d_touched = new HashMap<Node, Delta>();
+		d_next = DatasetGraphFactory.cloneStructure(d_base);
+		d_touched = new HashMap<>();
 	}
 	
 	/**
@@ -135,5 +136,35 @@ public class DatasetGraphDelta extends DatasetGraphBase {
 	@Override
 	public long size() {
 		return d_next.size();
+	}
+
+	@Override
+	public boolean supportsTransactions() {
+		return false;
+	}
+
+	@Override
+	public void begin(ReadWrite readWrite) {
+
+	}
+
+	@Override
+	public void commit() {
+
+	}
+
+	@Override
+	public void abort() {
+
+	}
+
+	@Override
+	public void end() {
+
+	}
+
+	@Override
+	public boolean isInTransaction() {
+		return false;
 	}
 }

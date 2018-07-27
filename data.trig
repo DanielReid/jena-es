@@ -7,8 +7,8 @@
 @prefix dataset: <http://example.com/datasets/> .
 @prefix version: <http://example.com/versions/> .
 @prefix revision: <http://example.com/revisions/> .
-@prefix assert: <http://example.com/assertions/> .
-@prefix retract: <http://example.com/retractions/> .
+@prefix assert: <http://example.com/assert/> .
+@prefix retract: <http://example.com/retract/> .
 
 dataset:qmk2x16nz1 a es:Dataset ;
   dcterms:date "2014-09-24T12:49:18+00:00"^^xsd:dateTime ;
@@ -73,9 +73,9 @@ revision:44ea0618-43e8-11e4-bcfb-bba47531d497 a es:Revision ;
 
 revision:38fc1de7a-43ea-11e4-a12c-3314171ce0bb a es:Revision ;
   es:version version:7wi4xglx1c ;
-  es:assertions assert:844908ec-43eb-11e4-ac51-6b523949084e .
+  es:assertions assert:38fc1de7a-43ea-11e4-a12c-3314171ce0bb .
 
-assert:844908ec-43eb-11e4-ac51-6b523949084e {
+assert:38fc1de7a-43ea-11e4-a12c-3314171ce0bb {
 
   <http://example.com/PeterParker> a foaf:Person ;
     foaf:name "Peter Parker", "Spiderman" .

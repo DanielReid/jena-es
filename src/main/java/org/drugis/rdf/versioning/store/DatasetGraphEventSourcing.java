@@ -1,28 +1,25 @@
 package org.drugis.rdf.versioning.store;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.query.ReadWrite;
+import org.apache.jena.shared.Lock;
+import org.apache.jena.sparql.JenaTransactionException;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphTrackActive;
+import org.apache.jena.sparql.core.Transactional;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.sparql.util.Context;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.DatasetFactory;
-import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.shared.Lock;
-import com.hp.hpl.jena.sparql.JenaTransactionException;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.DatasetGraphTrackActive;
-import com.hp.hpl.jena.sparql.core.Transactional;
-import com.hp.hpl.jena.sparql.graph.GraphFactory;
-import com.hp.hpl.jena.sparql.util.Context;
-import com.hp.hpl.jena.update.GraphStore;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Event sourcing dataset that supports transactions (single writer, multiple reader).
  */
-public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implements GraphStore {
+public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implements DatasetGraph {
 	Log d_log = LogFactory.getLog(getClass());
 	
 	private class Transaction extends Observable {
@@ -46,19 +43,15 @@ public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implement
 
 	public DatasetGraphEventSourcing(EventSource eventSource, Node logUri) {
 		d_eventSource = eventSource;
-		if (!(eventSource.getDataStore() instanceof Transactional)) {
+		if (eventSource.getDataStore() == null) {
 			throw new IllegalArgumentException("DatasetGraphEventSourcing can only be based on a Transactional DatasetGraph");
 		}
 		d_dataset = logUri;
-		d_txn = new ThreadLocal<Transaction>();
+		d_txn = new ThreadLocal<>();
 	}
 	
 	public Node getLatestEvent() {
 		return d_eventSource.getLatestVersionUri(d_dataset);
-	}
-	
-	public boolean exists() {
-		return d_eventSource.datasetExists(d_dataset);
 	}
 	
 	@Override
@@ -71,10 +64,6 @@ public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implement
 		return Context.emptyContext;
 	}
 
-	@Override
-	public Dataset toDataset() {
-		return DatasetFactory.create(get());
-	}
 
 	@Override
 	protected DatasetGraph get() {
@@ -136,7 +125,7 @@ public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implement
 	}
 
 	private Transactional getTransactional() {
-		return (Transactional)d_eventSource.getDataStore();
+		return d_eventSource.getDataStore();
 	}
 	
 	private void checkWrite() {
@@ -178,16 +167,6 @@ public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implement
 	@Override
 	protected void _close() {
 		d_eventSource.getDataStore().close();
-	}
-
-	@Override
-	public void startRequest() {
-		// NI
-	}
-
-	@Override
-	public void finishRequest() {
-		// NI
 	}
 
 	public DatasetGraph getView(Node version) {

@@ -1,33 +1,30 @@
 package org.drugis.rdf.versioning.server;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.query.QueryParseException;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.riot.WebContent;
+import org.apache.jena.sparql.modify.UsingList;
+import org.apache.jena.update.UpdateAction;
 import org.drugis.rdf.versioning.store.DatasetGraphEventSourcing;
 import org.drugis.rdf.versioning.store.EventSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.query.QueryParseException;
-import com.hp.hpl.jena.query.Syntax;
-import com.hp.hpl.jena.sparql.modify.UsingList;
-import com.hp.hpl.jena.update.UpdateAction;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/datasets/{datasetId}/update")
 public class UpdateController {
-	@Autowired EventSource d_eventSource;
+	@Autowired private EventSource d_eventSource;
+	@Autowired private CacheManager cacheManager;
+
 	Log d_log = LogFactory.getLog(getClass());
 
 	@RequestMapping(method=RequestMethod.POST, consumes=WebContent.contentTypeSPARQLUpdate)
@@ -58,21 +55,19 @@ public class UpdateController {
 			usingList.addUsingNamed(NodeFactory.createURI(uri));
 		}
 
-		Runnable action = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					UpdateAction.parseExecute(usingList, dataset, request.getInputStream(), Config.BASE_URI, Syntax.syntaxARQ);
-				} catch (QueryParseException e) {
-					throw new RequestParseException(e);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		};
+		Runnable action = () -> {
+            try {
+                UpdateAction.parseExecute(usingList, dataset, request.getInputStream(), Config.BASE_URI, Syntax.syntaxARQ);
+            } catch (QueryParseException e) {
+                throw new RequestParseException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
 
 		String newVersion = Util.runReturningVersion(dataset, version, action, Util.versionMetaData(request));
 		response.setHeader("X-EventSource-Version", newVersion);
+		cacheManager.getCache("datasets").evict(datasetId);
 		return null;
 	}
 }
