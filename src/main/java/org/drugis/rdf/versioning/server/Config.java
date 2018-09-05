@@ -46,7 +46,7 @@ public class Config extends WebMvcConfigurerAdapter {
 
   @Bean
   public CacheManager cacheManager() {
-    long numberOfCacheItems = 100;
+    long numberOfCacheItems = 1000;
     long ttl = 60*60*25;
 
     CacheConfiguration<Object, Object> cacheConfiguration = CacheConfigurationBuilder

@@ -3,6 +3,7 @@ Jena Event Sourcing
 
 Defines a mechanism for versioning of RDF datasets, which are collections of graphs.
 It is an implementation of the [Event Sourcing pattern](http://martinfowler.com/eaaDev/EventSourcing.html) for the [Apache Jena](https://jena.apache.org/) triple store.
+For more information on all components of the drugis project, please refer to the OVERALL-README.md in the root folder of the [addis-core project](https://github.com/drugis/addis-core).
 The versioning model is designed to be compatible with the [Memento RFC](https://mementoweb.org/guide/rfc/), but does not implement that RFC; instead, it provides the semantics that allow a client to implement the RFC on top of this.
 Other sources of inspiration were [Datomic](http://www.datomic.com/) and [Git](https://git-scm.com/).
 There is no authentication or authorization: any valid request will be executed.
@@ -24,6 +25,21 @@ mvn spring-boot:run
 ```
 
 Or package it (`mvn install spring-boot:repackage`) and then run it using `java -jar`.
+
+Or, after packaging it as above, run it in a docker container. The Dockerfile is in the `docker/` subdirectory. Copy the built jar file there.
+
+example run command (using volume to make the database available externally):
+
+```
+docker run -d \
+  -p 3030:8080 \
+  -e EVENT_SOURCE_URI_PREFIX=https://localdocker.com:3030 \
+  --name="jena-es" 
+  -v /home/username/jena-es/docker/DB:/DB  
+  jena-es
+```
+
+*Note that on MacOS or Windows, problems could arise if the host volume is in a Users directory* - see e.g. https://github.com/stain/jena-docker/issues/1
 
 Data model
 ----------
