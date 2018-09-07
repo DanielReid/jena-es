@@ -9,37 +9,33 @@ import org.drugis.rdf.versioning.server.messages.JenaResultSetMessageConverter;
 import org.drugis.rdf.versioning.store.EventSource;
 import org.ehcache.config.CacheConfiguration;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.core.config.DefaultConfiguration;
-import org.ehcache.expiry.Duration;
-import org.ehcache.expiry.Expirations;
 import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration.WebMvcAutoConfigurationAdapter;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.filter.CharacterEncodingFilter;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.cache.Caching;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @SpringBootConfiguration
 @EnableCaching
-public class Config extends WebMvcConfigurerAdapter {
+public class Config implements WebMvcConfigurer {
   public static final String BASE_URI = "http://example.com/"; // FIXME
   @Value("${EVENT_SOURCE_URI_PREFIX}")
   private String uriPrefix;
@@ -51,7 +47,7 @@ public class Config extends WebMvcConfigurerAdapter {
 
     CacheConfiguration<Object, Object> cacheConfiguration = CacheConfigurationBuilder
             .newCacheConfigurationBuilder(Object.class, Object.class, ResourcePoolsBuilder.heap(numberOfCacheItems))
-            .withExpiry(Expirations.timeToLiveExpiration(new Duration(ttl, TimeUnit.SECONDS)))
+            .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(ttl)))
             .build();
 
     Map<String, CacheConfiguration<?, ?>> caches = createCacheConfigurations(cacheConfiguration);
@@ -114,12 +110,12 @@ public class Config extends WebMvcConfigurerAdapter {
     return filter;
   }
 
-  @Override
-  public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-    converters.add(new JenaGraphMessageConverter());
-    converters.add(new JenaDatasetMessageConverter());
-    converters.add(new JenaResultSetMessageConverter());
-    converters.add(new BooleanResultMessageConverter());
-    super.configureMessageConverters(converters);
+  @Bean
+  public HttpMessageConverters customConverters() {
+    return new HttpMessageConverters(
+        new JenaGraphMessageConverter(),
+        new JenaDatasetMessageConverter(),
+        new JenaResultSetMessageConverter(),
+        new BooleanResultMessageConverter());
   }
 }
