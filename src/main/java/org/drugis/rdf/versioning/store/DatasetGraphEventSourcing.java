@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.TxnType;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.JenaTransactionException;
 import org.apache.jena.sparql.core.DatasetGraph;
@@ -103,7 +104,8 @@ public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implement
 	}
 
 	@Override
-	protected void _begin(ReadWrite readWrite) {
+	protected void _begin(TxnType txnType) {
+		ReadWrite readWrite = TxnType.convert(txnType);
 		d_log.debug("TRANSACTION BEGIN for " + readWrite);
 		if (readWrite == ReadWrite.READ) { // read-only: construct a view
 			getTransactional().begin(ReadWrite.READ);
@@ -169,7 +171,12 @@ public class DatasetGraphEventSourcing extends DatasetGraphTrackActive implement
 		d_eventSource.getDataStore().close();
 	}
 
-	public DatasetGraph getView(Node version) {
+  @Override
+  protected boolean _promote(Promote promoteMode) {
+    return super.promote(promoteMode);
+  }
+
+  public DatasetGraph getView(Node version) {
 		return d_eventSource.getVersion(d_dataset, version);
 	}
 

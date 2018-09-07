@@ -9,6 +9,7 @@ import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.compose.Delta;
 import org.apache.jena.query.ReadWrite;
+import org.apache.jena.query.TxnType;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetGraphBase;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
@@ -144,8 +145,23 @@ public class DatasetGraphDelta extends DatasetGraphBase {
 	}
 
 	@Override
+	public void begin() {
+
+	}
+
+	@Override
+	public void begin(TxnType txnType) {
+
+	}
+
+	@Override
 	public void begin(ReadWrite readWrite) {
 
+	}
+
+	@Override
+	public boolean promote(Promote promote) {
+		return false;
 	}
 
 	@Override
@@ -161,6 +177,16 @@ public class DatasetGraphDelta extends DatasetGraphBase {
 	@Override
 	public void end() {
 
+	}
+
+	@Override
+	public ReadWrite transactionMode() {
+		return null;
+	}
+
+	@Override
+	public TxnType transactionType() {
+		return null;
 	}
 
 	@Override

@@ -13,14 +13,14 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>1.5.3.RELEASE</version>
+    <version>2.0.4.RELEASE</version>
   </parent>
   <build>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>1.5.3.RELEASE</version>
+        <version>2.0.4.RELEASE</version>
         <configuration>
           <mainClass>org.drugis.rdf.versioning.server.RootController</mainClass>
           <layout>ZIP</layout>
@@ -43,32 +43,38 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context-support</artifactId>
-      <version>4.2.1.RELEASE</version>
+      <version>5.0.7.RELEASE</version>
     </dependency>
 
     <!-- Caching -->
     <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
-      <version>3.3.1</version>
+      <version>3.6.0</version>
     </dependency>
     <dependency>
       <groupId>javax.cache</groupId>
       <artifactId>cache-api</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
     </dependency>
     <!-- /Caching -->
 
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>apache-jena-libs</artifactId>
-      <version>3.3.0</version>
+      <version>3.8.0</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-cmds</artifactId>
-      <version>3.3.0</version>
+      <version>3.8.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -83,7 +89,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
-      <version>1.5.3.RELEASE</version>
     </dependency>
 
   </dependencies>
